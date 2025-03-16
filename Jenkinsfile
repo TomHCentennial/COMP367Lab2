@@ -5,6 +5,11 @@ pipeline {
         maven 'Maven'  // Use the Maven tool configured in Jenkins
     }
 
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('d0ed6c0f-2469-4c86-9453-9a5ff2ad2047')  // Replace with your Jenkins credentials ID
+        DOCKER_IMAGE = 'tomhcent/comp367app'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -16,15 +21,19 @@ pipeline {
                 sh 'mvn clean package'
             }
         }
-        stage('Test') {
+        stage('Docker Login') {
             steps {
-                sh 'mvn test'
+                sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
             }
         }
-        stage('Deploy') {
+        stage('Docker Build') {
             steps {
-                echo 'Deploying Application...'
-                // Add your deploy steps here
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                sh 'docker push $DOCKER_IMAGE'
             }
         }
     }
